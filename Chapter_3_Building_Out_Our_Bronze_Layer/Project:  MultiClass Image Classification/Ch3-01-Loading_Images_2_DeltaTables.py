@@ -25,25 +25,8 @@ if bool(dbutils.widgets.get('Reset')):
 # COMMAND ----------
 
 from pyspark.sql import functions as f
-
-
-def prep_data2delta(
-    dir_name,
-    outcomes,
-    name2write,
-    path2write="YOUR_PATH",
-    write2delta=True,
-    returnDF=None,
-):
-
-    mapping_dict = {
-        "buildings": 0,
-        "sea": 1,
-        "glacier": 2,
-        "forest": 3,
-        "street": 4,
-        "mountain": 5,
-    }
+def prep_data2delta(dir_name,outcomes,name2write,path2write="YOUR_PATH",write2delta=True,returnDF=None):
+    mapping_dict = {"buildings": 0,"sea": 1,"glacier": 2,"forest": 3,"street": 4,"mountain": 5,}
     # As we have multi label problem we will loop over labels to save them all under 1 main training set 
     for label_name in outcomes:
         df = (
@@ -53,10 +36,8 @@ def prep_data2delta(
             .withColumn("label_name", f.lit(f"{label_name}"))
             .withColumn("label_id", f.lit(f"{mapping_dict[label_name]}").astype("int"))
             .withColumn("image_name", f.split(f.col("path"), "/").getItem(10))
-            .withColumn(
-                "id", f.split(f.col("image_name"), ".jpg").getItem(0).astype("int")
-            )
-        )
+            .withColumn("id", f.split(f.col("image_name"), ".jpg").getItem(0).astype("int"))
+             )
         if write2delta:
             df.write.format("delta").mode("append").save(f"{path2write}{name2write}")
         if returnDF:
@@ -77,12 +58,12 @@ def prep_data2delta(
 # COMMAND ----------
 
 prep_data2delta(
-    train_dir,
-    outcomes,
-    delta_train_name,
-    write2delta=True,
-    path2write=main_dir_2write,
-    returnDF=None,
+    train_dir,# your folder where raw images are
+    outcomes,#your labels names
+    delta_train_name,#delta table name you will save to
+    write2delta=True,#if you want to write the table
+    path2write=main_dir_2write,#the path to write into 
+    returnDF=None,#if you want to return a final delta table 
 )
 
 # COMMAND ----------
